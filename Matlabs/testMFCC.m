@@ -82,7 +82,7 @@ trainLabels = [1,2,3,4,5, ...
                 1,2,3,4,5];
 
 
-K = 3; n = 5;
+K = 1; n = 5;
             
 [accuracy] = nFoldValidation(trainData',trainLabels',n,K);
 
