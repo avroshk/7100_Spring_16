@@ -1,0 +1,35 @@
+n_speakers 4 
+n_samples 379 
+n_features 13
+_______________________________________________________________________________
+Name: k-means++ 
+Time: 0.08s 
+Estimator Inertia: 3053 
+Homogeneity Score: 0.544 
+Completeness Score: 0.552 
+V Measure score: 0.548 
+Adjusted rand score: 0.462 
+Adjusted Mutual Info score: 0.540 
+Silhouette Score: 0.177
+_______________________________________________________________________________
+Name:    Random 
+Time: 0.02s 
+Estimator Inertia: 3053 
+Homogeneity Score: 0.544 
+Completeness Score: 0.552 
+V Measure score: 0.548 
+Adjusted rand score: 0.462 
+Adjusted Mutual Info score: 0.540 
+Silhouette Score: 0.185
+_______________________________________________________________________________
+Name: PCA-based 
+Time: 0.00s 
+Estimator Inertia: 3061 
+Homogeneity Score: 0.509 
+Completeness Score: 0.517 
+V Measure score: 0.513 
+Adjusted rand score: 0.527 
+Adjusted Mutual Info score: 0.504 
+Silhouette Score: 0.223
+_______________________________________________________________________________
+

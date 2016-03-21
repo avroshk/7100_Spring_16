@@ -2,9 +2,11 @@
 *.wav
 *.aif
 *.mp3
+*.csv
 
 /Ableton_projects
 /Sound_Recordings
 /Matlabs/data
+
 
 

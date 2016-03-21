@@ -4,9 +4,9 @@ import scipy.io.wavfile as wavfile
 import numpy as np
 
 
-numSpeakers = 6 ## In each file
+numSpeakers = 2 ## In each file
 numOutput = 50 ## to be generated
-set = "B"
+set = "C"
 
 outputFileName = "set"+set+"_"+"S"+str(numSpeakers)
 
@@ -73,6 +73,8 @@ for n in range(1,numOutput+1):
 
         #read the speech in the file
         rate,data=wavfile.read(root+"/"+folder+"/"+file)
+        
+        #downsample to 16 kHz
 
         #Annotate the timestamp
         txtFile.write(",{0}".format(timestamp))
