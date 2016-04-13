@@ -13,19 +13,24 @@ from sklearn.preprocessing import scale
 
 np.random.seed(42)
 
-fileID = sys.argv[1];
-set = sys.argv[2];
-numSpeakers = sys.argv[3];
-blockLength = sys.argv[4];
-hopLength = sys.argv[5];
+fileID = sys.argv[1];           #fileID
+set = sys.argv[2];              #Set
+numSpeakers = sys.argv[3];      #Number of Speakers
+blockLength = sys.argv[4];      #Block length
+hopLength = sys.argv[5];        #Hop length
 
-#path = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/A/features/setA_2048_32000_S4_6.csv"
+outputRoot = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/"+"set"+set+"_S"+numSpeakers+"_"+blockLength+"_"+fileID+".csv"
 
-path = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/features/set"+set+"_"+hopLength+"_"+blockLength+"_S"+numSpeakers+"_"+fileID+".csv"
+txtResultFile = open(outputRoot, "w")
 
 
-#data = pd.read_csv(path)
-#print df.head()
+#path = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/features/set"+set+"_"+hopLength+"_"+blockLength+"_S"+numSpeakers+"_"+fileID+"_allfeatures.csv"
+
+path = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/features/set"+set+"_"+hopLength+"_"+blockLength+"_S"+numSpeakers+"_"+fileID+"_selectedfeatures.csv"
+
+#path = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/features/set"+set+"_"+hopLength+"_"+blockLength+"_S"+numSpeakers+"_"+fileID+".csv"
+
+#path = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/features/set"+set+"_"+hopLength+"_"+blockLength+"_S"+numSpeakers+"_"+fileID+"_onlyMFCCs.csv"
 
 f = open(path)
 f.readline()
@@ -53,6 +58,45 @@ print(79 * '_')
 def bench_k_means(estimator, name, data):
     t0 = time()
     estimator.fit(data)
+    
+    homogeneity_score = metrics.homogeneity_score(labels,estimator.labels_)
+    completeness_score = metrics.completeness_score(labels, estimator.labels_)
+    v_measure_score = metrics.v_measure_score(labels, estimator.labels_)
+    adjusted_rand_score = metrics.adjusted_rand_score(labels, estimator.labels_)
+    adjusted_mutual_info_score = metrics.adjusted_mutual_info_score(labels, estimator.labels_)
+    silhouette_score = metrics.silhouette_score(features,  estimator.labels_,
+                                                metric='euclidean',
+                                                sample_size=sample_size)
+    
+    
+    estimated_labels = estimator.predict(data)
+
+    # No need to replace classes
+    # j=0
+    # for speaker in speaker_ids:
+    
+    #     for n,i in enumerate(estimated_labels):
+    #         if i==j:
+    #             estimated_labels[n]=speaker
+    #     j = j + 1
+
+    i=0
+    for label in labels:
+        i = i + 1;
+        txtResultFile.write("{0}".format(label))
+        if i<len(labels):
+            txtResultFile.write(",")
+    
+    txtResultFile.write("\n")
+    
+    i=0
+    for label in estimated_labels:
+        i = i + 1;
+        txtResultFile.write("{0}".format(label))
+        if i<len(estimated_labels):
+            txtResultFile.write(",")
+
+
     print('Name: % 9s \n'
           'Time: %.2fs \n'
           'Estimator Inertia: %i \n'
@@ -63,36 +107,40 @@ def bench_k_means(estimator, name, data):
           'Adjusted Mutual Info score: %.3f \n'
           'Silhouette Score: %.3f'
           % (name, (time()-t0),estimator.inertia_,
-             metrics.homogeneity_score(labels,estimator.labels_),
-             metrics.completeness_score(labels, estimator.labels_),
-             metrics.v_measure_score(labels, estimator.labels_),
-             metrics.adjusted_rand_score(labels, estimator.labels_),
-             metrics.adjusted_mutual_info_score(labels, estimator.labels_),
-             metrics.silhouette_score(features,  estimator.labels_,
-                                      metric='euclidean',
-                                      sample_size=sample_size)))
+             homogeneity_score,
+             completeness_score,
+             v_measure_score,
+             adjusted_rand_score,
+             adjusted_mutual_info_score,
+             silhouette_score))
 
 
+#KMeans
 bench_k_means(KMeans(init='k-means++', n_clusters=n_speakers, n_init=10),
               name='k-means++',
               data=features)
 
 print(79 * '_')
 
-bench_k_means(KMeans(init='random', n_clusters=n_speakers, n_init=10),
-              name='Random',
-              data=features)
+##KMeans with random initialization
+#bench_k_means(KMeans(init='random', n_clusters=n_speakers, n_init=10),
+#              name='Random',
+#              data=features)
 
 print(79 * '_')
-
-#in this case the seeding of the centers in deterministic, hence we run the algorithm only once
-pca = PCA(n_components=n_speakers).fit(features)
-bench_k_means(KMeans(init=pca.components_, n_clusters=n_speakers, n_init=1),
-              name='PCA-based',
-              data=features)
+#
+##KMeans PCA
+##in this case the seeding of the centers in deterministic, hence we run the algorithm only once
+#pca = PCA(n_components=n_speakers).fit(features)
+#bench_k_means(KMeans(init=pca.components_, n_clusters=n_speakers, n_init=1),
+#              name='PCA-based',
+#              data=features)
 
     
 print(79 * '_')
+
+
+
 
 ########################################################################
 #Visualize data
@@ -123,12 +171,25 @@ plt.imshow(Z, interpolation='nearest',
 #Colour Cycler
 colorcycler = itertools.cycle(['r', 'g', 'b', 'y','b','w','c','m'])
 
+
+
 for speaker in speaker_ids:
+
     speaker_labels = np.argwhere(labels==speaker)
+    
+#    for every_speaker in speaker_labels:
+#        j = j + 1
+#        txtResultFile.write("{0},{1}".format(np.int_(speaker),np.int_(every_speaker)))
+#        if i==len(speaker_ids):
+#            if j<len(speaker_labels):
+#                txtResultFile.write(",")
+#        else:
+#            txtResultFile.write(",")
+
     plt.scatter(reduced_data[speaker_labels,0],
                 reduced_data[speaker_labels,1],
                 color=next(colorcycler))
-    
+
 
     
 #plt.plot(reduced_data[:,0], reduced_data[:,1], 'k.',markersize=2)
@@ -142,11 +203,16 @@ plt.scatter(centroids[:,0],centroids[:,1],
 
 plt.title('K-means clustering on the speakers (PCA-reduced data)')
 
+txtResultFile.close()
+
 plt.xlim(x_min,x_max)
 plt.ylim(y_min,y_max)
 plt.xticks(())
 plt.yticks(())
 plt.show()
+
+
+
 
 
 
