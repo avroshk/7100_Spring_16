@@ -18,30 +18,38 @@ set = sys.argv[2];              #Set
 numSpeakers = sys.argv[3];      #Number of Speakers
 blockLength = sys.argv[4];      #Block length
 hopLength = sys.argv[5];        #Hop length
+thresholdOrder = sys.argv[6]    #Adaptive Threshold order
 
-outputRoot = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/"+"set"+set+"_S"+numSpeakers+"_"+blockLength+"_"+fileID+".csv"
+outputRoot = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/"+"set"+set+"_S"+numSpeakers+"_"+blockLength+"_"+fileID+"_"+thresholdOrder+".csv"
 
 txtResultFile = open(outputRoot, "w")
 
 
 #path = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/features/set"+set+"_"+hopLength+"_"+blockLength+"_S"+numSpeakers+"_"+fileID+"_allfeatures.csv"
 
-path = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/features/set"+set+"_"+hopLength+"_"+blockLength+"_S"+numSpeakers+"_"+fileID+"_selectedfeatures.csv"
+#path = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/features/set"+set+"_"+hopLength+"_"+blockLength+"_S"+numSpeakers+"_"+fileID+"_selectedfeatures.csv"
 
 #path = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/features/set"+set+"_"+hopLength+"_"+blockLength+"_S"+numSpeakers+"_"+fileID+".csv"
 
 #path = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/features/set"+set+"_"+hopLength+"_"+blockLength+"_S"+numSpeakers+"_"+fileID+"_onlyMFCCs.csv"
+
+#path = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/features/set"+set+"_"+hopLength+"_"+blockLength+"_S"+numSpeakers+"_"+fileID+"_silencedetected.csv"
+
+path = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/features/set"+set+"_"+hopLength+"_"+blockLength+"_S"+numSpeakers+"_"+fileID+"_"+thresholdOrder+".csv"
 
 f = open(path)
 f.readline()
 
 data = np.loadtxt(fname = f, delimiter=',')
 
-labels = data[:,0]
+all_labels = data[:,0]
+labels = all_labels[all_labels != 0]
 #print labels
 
+
 #normalize data
-features = scale(data[:,1:])
+#features = scale(data[:,1:])
+features = scale(data[data[:,0] != 0])
 #features = data[:,1:]
 #print features
 
@@ -79,22 +87,37 @@ def bench_k_means(estimator, name, data):
     #         if i==j:
     #             estimated_labels[n]=speaker
     #     j = j + 1
+#
+#    i=0
+#    for label in labels:
+#        i = i + 1;
+#        txtResultFile.write("{0}".format(label))
+#        if i<len(labels):
+#            txtResultFile.write(",")
 
     i=0
-    for label in labels:
+    j=0
+    for label in all_labels:
         i = i + 1;
         txtResultFile.write("{0}".format(label))
-        if i<len(labels):
-            txtResultFile.write(",")
-    
-    txtResultFile.write("\n")
-    
-    i=0
-    for label in estimated_labels:
-        i = i + 1;
-        txtResultFile.write("{0}".format(label))
-        if i<len(estimated_labels):
-            txtResultFile.write(",")
+        txtResultFile.write(",")
+        if label == 0:
+            txtResultFile.write("{0}".format(0))
+        else:
+            txtResultFile.write("{0}".format(estimated_labels[j]))
+            j = j + 1
+        if i<len(all_labels):
+            txtResultFile.write("\n")
+
+
+#    txtResultFile.write("\n")
+#    
+#    i=0
+#    for label in estimated_labels:
+#        i = i + 1;
+#        txtResultFile.write("{0}".format(label))
+#        if i<len(estimated_labels):
+#            txtResultFile.write(",")
 
 
     print('Name: % 9s \n'
@@ -169,7 +192,7 @@ plt.imshow(Z, interpolation='nearest',
            aspect='auto', origin='lower')
 
 #Colour Cycler
-colorcycler = itertools.cycle(['r', 'g', 'b', 'y','b','w','c','m'])
+colorcycler = itertools.cycle(['r', 'g', 'b', 'y','c','k','w','m'])
 
 
 

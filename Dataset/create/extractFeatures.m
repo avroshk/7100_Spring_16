@@ -1,7 +1,7 @@
-function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, clusterTimeInSecs)
+function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, clusterTimeInSecs,aggregate,order)
     %%%%%%
-    %Case 1: Try using a 2 second block size on FFT (preffered)
-    %Case 2: Try aggregating smaller blocks to a longer cluster window for one set of features
+    %Case 1: Using a 2 second block size on FFT (no aggregation - use long FFT window)
+    %Case 2: Aggregate smaller blocks to a longer cluster window for one set of features
     %%%%%%
     
     %Reading the file
@@ -9,14 +9,48 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
     [x,Fs] = audioread(strcat(path,'/set',set,'_S',int2str(numSpeakers),'_',int2str(fileIndex),'.wav'));
     fileID = fopen(strcat(path,'/annotationset',set,'_S',int2str(numSpeakers),'.txt'));
     
-    %Case 1: Use longer blockLengths
-%     blockLength = clusterTimeInSecs*Fs; % seconds
+    %Calculate RMS to detect silence
+    RMS_i = ComputeFeature('TimeRms',x,Fs,[],blockLength,hopLength);
+    IP_i = ComputePitch('SpectralAcf',x,Fs,[],blockLength,hopLength);
+    RMS_i = RMS_i(1:size(IP_i,2));
     
-    %Case 2: 
-    clusterWindow = clusterTimeInSecs*Fs; %in samples or 1 sec
-    windowInNumBlocks = ceil(clusterWindow/blockLength);
+    %--------Detecting Silence-----
+    %Thresholding
+    THR = RMS_i;
 
-    k = numSpeakers;
+    time = (1:size(THR,2));
+    time = time.*hopLength;
+    time = time./Fs;
+
+    lambda = mean(THR)/3;
+
+    threshold = myMedianThres(THR,order,lambda);
+    
+    noise_floor = -75;
+    
+    threshold(threshold<noise_floor) = noise_floor;
+
+    %plot---------
+%     plot(time,THR); 
+%     hold on; plot(time,threshold); 
+    %plot---------
+    
+    valid_ones = find(THR>threshold);
+    
+    mask = zeros(size(THR));
+    mask(valid_ones) = 1;
+    
+    origmask = mask;
+    
+    %Set block lengths 
+    if (aggregate == 0)
+        %Case 1: Use longer blockLengths
+        blockLength = clusterTimeInSecs*Fs; 
+    else
+        %Case 2: Aggregate 
+        clusterWindow = clusterTimeInSecs*Fs; 
+        windowInNumBlocks = ceil(clusterWindow/blockLength);
+    end
 
     %Reading labels
     i=0;
@@ -27,8 +61,8 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
 
     fclose(fileID);
     labels =  strsplit(myLabels,',');
- 
-    %Extract spectral features
+    
+      %Extract spectral features
     MFCC = ComputeFeature('SpectralMfccs',x,Fs,[],blockLength,hopLength);
     IP = ComputePitch('SpectralAcf',x,Fs,[],blockLength,hopLength);
     SF = ComputeFeature('SpectralFlatness',x,Fs,[],blockLength,hopLength);
@@ -44,128 +78,86 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
     %Truncate Time domain features
     ZCR = ZCR(1:size(MFCC,2));
     RMS = RMS(1:size(MFCC,2));
-    
-%     pad = MFCC(:,size(MFCC,2));
-%     pad1 = MFCC(:,size(MFCC,2)-1);
+   
+%     Finding local minima
+%     THR_filt = medfilt1(THR);
+%     DataInv = 1.01*max(THR_filt) - THR_filt;
+%     [minima, minIdx] = findpeaks(DataInv);
+%     minima = THR(minIdx);
+%     
+%     minima_plot = ones(size(THR,2),1)*min(RMS)*4;
+%     minima_plot = minima_plot*(0.3);
+%     minima_plot(minIdx) = 0;
 
-%     MFCC_d = diff([MFCC,pad],1,2);
-%     MFCC_d2 = diff([MFCC,pad,pad1],2,2);
-    
-%---------Detecting Silence-----
-
-%     %Thresholding
-%     THR = ZCR;
-% 
-%     time = (1:size(THR,2));
-%     time = time.*hopLength;
-%     time = time./Fs;
-% 
-%     order = 32;
-%     lambda = -0.01;
-% 
-%     threshold = myMedianThres(THR,order,lambda,false);
-
-%     plot(time,THR); hold on;
-%     plot(time,threshold);
-
-%     valid_ones = find(THR>threshold);
-    % valod_ones_ = find(THR<size(MFCC,2));
-
-
-    %Finding local minima
-    % THR_filt = medfilt1(THR);
-    % DataInv = 1.01*max(THR_filt) - THR_filt;
-    % [minima, minIdx] = findpeaks(DataInv);
-    % minima = THR(minIdx);
-    % 
-    % minima_plot = ones(size(THR,2),1);
-    % minima_plot = minima_plot*(0.3);
-    % minima_plot(minIdx) = 0;
-
-    % plot(time,minima_plot);
+    %---- plots 
+%     hold on; plot(time,threshold_nocomp);
+%     hold on; plot(time,minima_plot);
+%     hold off;
 %------------------------------
 
+%Create result matrices
 
+%     MFCC_final = zeros(size(MFCC));   
+%     IP_final = zeros(size(IP)); 
+%     SF_final = zeros(size(SF)); 
+%     SFF_final = zeros(size(SFF)); 
+%     SC_final = zeros(size(SC)); 
+%     SR_final = zeros(size(SR)); 
+%     SS_final = zeros(size(SS)); 
+%     
+%     ZCR_final = zeros(size(ZCR)); 
+%     RMS_final = zeros(size(RMS)); 
+  
+    %numHops
+    numHops = size(MFCC,2);
+       
+    origmask = getGroundTruthForSilence(numHops,mask,windowInNumBlocks);
+    
+    %Aggregate using mean or standard deviation
+    MorStd = 0;
     %Case 2: Aggregate the features into cluster windows
-    MFCC_final = zeros(size(MFCC));   
-    IP_final = zeros(size(IP)); 
-    SF_final = zeros(size(SF)); 
-    SFF_final = zeros(size(SFF)); 
-    SC_final = zeros(size(SC)); 
-    SR_final = zeros(size(SR)); 
-    SS_final = zeros(size(SS)); 
-    
-    ZCR_final = zeros(size(ZCR)); 
-    RMS_final = zeros(size(RMS)); 
-    
-    for i=i:size(MFCC,2)
-        MFCC_final(:,i) = mean(MFCC(:,i:min(i+windowInNumBlocks-1,size(MFCC,2))),2);
-        IP_final(:,i) = mean(IP(:,i:min(i+windowInNumBlocks-1,size(IP,2))),2);
-        SF_final(:,i) = mean(SF(:,i:min(i+windowInNumBlocks-1,size(SF,2))),2);
-        SFF_final(:,i) = mean(SFF(:,i:min(i+windowInNumBlocks-1,size(SFF,2))),2);
-        SC_final(:,i) = mean(SC(:,i:min(i+windowInNumBlocks-1,size(SC,2))),2);
-        SR_final(:,i) = mean(SR(:,i:min(i+windowInNumBlocks-1,size(SR,2))),2);
-        SS_final(:,i) = mean(SS(:,i:min(i+windowInNumBlocks-1,size(SS,2))),2);
-        ZCR_final(:,i) = mean(ZCR(:,i:min(i+windowInNumBlocks-1,size(ZCR,2))),2);
-        RMS_final(:,i) = mean(RMS(:,i:min(i+windowInNumBlocks-1,size(RMS,2))),2);
+    if (aggregate ~= 0)
+        MFCC = aggregateFeature(numHops,MFCC,mask,windowInNumBlocks,MorStd);
+        IP = aggregateFeature(numHops,IP,mask,windowInNumBlocks,MorStd);
+        SF = aggregateFeature(numHops,SF,mask,windowInNumBlocks,MorStd);
+        SFF = aggregateFeature(numHops,SFF,mask,windowInNumBlocks,MorStd);
+        SC = aggregateFeature(numHops,SC,mask,windowInNumBlocks,MorStd);
+        SR = aggregateFeature(numHops,SR,mask,windowInNumBlocks,MorStd);
+        SS = aggregateFeature(numHops,SS,mask,windowInNumBlocks,MorStd);
+        ZCR = aggregateFeature(numHops,ZCR,mask,windowInNumBlocks,MorStd);
+        RMS = aggregateFeature(numHops,RMS,mask,windowInNumBlocks,MorStd);     
+    else
+        origmask = origmask(1:size(IP,2));
     end
-    
-    MFCC = MFCC_final;
-    IP = IP_final ;
-    SF = SF_final; 
-    SFF = SFF_final; 
-    SC = SC_final; 
-    SR = SR_final;
-    SS = SS_final;
-    ZCR = ZCR_final;
-    RMS = RMS_final;
-    
-%     %Thresholding
-%     THR = ZCR;
-% 
-%     time = (1:size(THR,2));
-%     time = time.*hopLength;
-%     time = time./Fs;
-% 
-%     order = 32;
-%     lambda = -0.01;
-% 
-%     threshold = myMedianThres(THR,order,lambda,false);
 
-%     plot(time,THR); hold on;
-%     plot(time,threshold);
+    %speaker labels------------------------------------------
+    speaker_labels = zeros(1,numHops);
 
-%     valid_ones = find(THR>threshold);
-    % valod_ones_ = find(THR<size(MFCC,2));
+    speaker_ids = [];
+    timestamps = [];
 
-
-    %Finding local minima
-    % THR_filt = medfilt1(THR);
-    % DataInv = 1.01*max(THR_filt) - THR_filt;
-    % [minima, minIdx] = findpeaks(DataInv);
-    % minima = THR(minIdx);
-    % 
-    % minima_plot = ones(size(THR,2),1);
-    % minima_plot = minima_plot*(0.3);
-    % minima_plot(minIdx) = 0;
-
-    % plot(time,minima_plot);
-
-    %labels
-    speaker_labels = zeros(1,size(MFCC,2));
+    for i=1:length(labels)
+        if i>1
+            if mod(i,2)==0
+                speaker_ids = [speaker_ids,str2double(labels{i})];
+%             else
+%                 timestamps = [timestamps,str2double(labels{i})];
+            end
+        end
+    end
     % timestamps = timestamps.*hopLength/Fs; 
 
-    speakers = zeros(numSpeakers,2);
+    speakers = zeros(length(speaker_ids),2);
     startIndex = 1;
     endIndex = 1;
-    for i = 1:numSpeakers
+    for i = 1:length(speaker_ids)
         speakers(i,1) = str2double(labels{2*i}); 
         speakers(i,2) = ceil(str2double(labels{(2*i)+1})*Fs/hopLength); 
     end
 
-    for i = 2:numSpeakers+1
+    for i = 2:length(speaker_ids)+1
         startIndex = speakers(i-1,2) + 1;
-        if i==numSpeakers+1 
+        if i==length(speaker_ids)+1 
             endIndex = size(MFCC,2);
         else
             endIndex = speakers(i,2);
@@ -173,7 +165,8 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
 
         speaker_labels(startIndex:endIndex) = speakers(i-1,1);
     end
-
+    %speaker labels------------------------------------------
+    
     %%%%
     % temp = ones(1,size(valid_ones,2)).*size(MFCC,2);
 %     valid_ones_indices = find(valid_ones<size(MFCC,2));
@@ -181,6 +174,9 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
 %     speaker_labels = speaker_labels(valid_ones(valid_ones_indices));
 %     MFCC = MFCC(:,valid_ones(valid_ones_indices));
 
+    speaker_labels = speaker_labels.*origmask;
+%     speaker_labels(speaker_labels==0) = -1;
+    
 
 %     headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
 %         'MFCC10','MFCC11','MFCC12','MFCC13','MFCC1d','MFCC2d','MFCC3d','MFCC4d','MFCC5d','MFCC6d', ...
@@ -198,7 +194,7 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
 
     features = [speaker_labels',MFCC',IP',SF',SFF',SC',SR',SS',ZCR',RMS'];
 
-    outputFileName = strcat(path,'/features/set',set,'_',int2str(hopLength),'_',int2str(blockLength),'_S',int2str(numSpeakers),'_',int2str(fileIndex),'_silencedetected','.csv');
+    outputFileName = strcat(path,'/features/set',set,'_',int2str(hopLength),'_',int2str(blockLength),'_S',int2str(numSpeakers),'_',int2str(fileIndex),'_',int2str(order),'.csv');
 
     csvwrite(outputFileName,[]);
     fileID = fopen(outputFileName,'w');
@@ -206,6 +202,7 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
     fprintf(fileID,'\n',[]);
     fclose(fileID);
 
+    %write to output file
     dlmwrite(outputFileName,features,'delimiter',',','-append');
     
     
@@ -222,7 +219,7 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
     % % testData = (testData - repmat(mean_trainData,testSetSize,1)) ./ repmat(std_trainData,testSetSiz
     % 
     % 
-    % 
+    %    k = numSpeakers;
     % % MFCC_A = MFCC(2,:);
     % % 
     % % cols = ceil(length(MFCC)/windowInNumBlocks);

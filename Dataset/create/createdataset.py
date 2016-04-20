@@ -4,9 +4,9 @@ import scipy.io.wavfile as wavfile
 import numpy as np
 
 
-numSpeakers = 2 ## In each file
+numSpeakers = 4 ## In each file
 numOutput = 50 ## to be generated
-set = "C"
+set = "D"
 
 outputFileName = "set"+set+"_"+"S"+str(numSpeakers)
 
