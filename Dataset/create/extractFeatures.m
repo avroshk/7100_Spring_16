@@ -1,4 +1,4 @@
-function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, clusterTimeInSecs,aggregate,order)
+function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, clusterTimeInSecs,aggregate,order,extraid)
     %%%%%%
     %Case 1: Using a 2 second block size on FFT (no aggregation - use long FFT window)
     %Case 2: Aggregate smaller blocks to a longer cluster window for one set of features
@@ -111,7 +111,7 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
     %numHops
     numHops = size(MFCC,2);
        
-    origmask = getGroundTruthForSilence(numHops,mask,windowInNumBlocks);
+%     origmask = getGroundTruthForSilence(numHops,mask,windowInNumBlocks);
     
     %Aggregate using mean or standard deviation
     MorStd = 0;
@@ -185,16 +185,26 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
 %         'MFCC12d2','MFCC13d2'};
 % %         ,'Pitch','Flatnaess','Flux','Centroid','Rolloff','Spread','ZCR','RMS'};
 
+%     headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
+%         'MFCC10','MFCC11','MFCC12','MFCC13','Pitch','Flatnaess','Flux','Centroid','Rolloff','Spread','ZCR','RMS'};
+
     headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
-        'MFCC10','MFCC11','MFCC12','MFCC13','Pitch','Flatnaess','Flux','Centroid','Rolloff','Spread','ZCR','RMS'};
+        'MFCC10','MFCC11','MFCC12','MFCC13'};
+
 
 
 %     features = [speaker_labels',MFCC',MFCC_d',MFCC_d2'];
 % ,IP',SF',SFF',SC',SR',SS',ZCR',RMS'];
 
-    features = [speaker_labels',MFCC',IP',SF',SFF',SC',SR',SS',ZCR',RMS'];
+features = [speaker_labels',MFCC'];
 
-    outputFileName = strcat(path,'/features/set',set,'_',int2str(hopLength),'_',int2str(blockLength),'_S',int2str(numSpeakers),'_',int2str(fileIndex),'_',int2str(order),'.csv');
+%     features = [speaker_labels',MFCC',IP',SF',SFF',SC',SR',SS',ZCR',RMS'];
+
+    outputFileName = strcat(path,'/features/set',set,'_',int2str(hopLength),'_',int2str(blockLength),'_S',int2str(numSpeakers),'_',int2str(fileIndex),'_',int2str(order));
+    if (extraid ~= 0)
+        outputFileName = strcat(outputFileName,'_',int2str(extraid));
+    end
+    outputFileName = strcat(outputFileName,'.csv');
 
     csvwrite(outputFileName,[]);
     fileID = fopen(outputFileName,'w');

@@ -29,13 +29,13 @@ function [result] = aggregateFeature(numHops,feature,mask,windowInNumBlocks,mean
         if (isempty(selected_featurePoints)) 
 
         else
-            if (length(valid_ones_in_this_window(valid_ones_in_this_window==1))>=start_pad)
+%             if (length(valid_ones_in_this_window(valid_ones_in_this_window==1))>=start_pad)
                 if (meanOrStd == 0) 
                     result(:,i-start_pad) = mean(selected_featurePoints,2);
                 else
                     result(:,i-start_pad) = std(selected_featurePoints,0,2);
                 end
-            end
+%             end
         end
     end
     

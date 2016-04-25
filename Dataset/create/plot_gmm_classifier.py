@@ -84,6 +84,8 @@ for index, (name, classifier) in enumerate(classifiers.items()):
     # initialize the GMM parameters in a supervised manner.
     classifier.means_ = np.array([X_train[y_train == i].mean(axis=0)
                                   for i in xrange(n_classes)])
+                                  
+    print classifier.means_
 
     # Train the other parameters using the EM algorithm.
     classifier.fit(X_train)

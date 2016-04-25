@@ -1,12 +1,16 @@
-function [player] = displayResult(fileIndex, numSpeakers, set, hopLength, blockLength, clusterTimeInSecs,order)
+function [player] = displayResult(fileIndex, numSpeakers, set, hopLength, blockLength, clusterTimeInSecs,order,extraid,classifier)
 
 
     path = strcat('/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/',set);
     [x,Fs] = audioread(strcat(path,'/set',set,'_S',int2str(numSpeakers),'_',int2str(fileIndex),'.wav'));
-    result = csvread(strcat(path,'/set',set,'_S',int2str(numSpeakers),'_',int2str(blockLength),'_',int2str(fileIndex),'_',int2str(order),'.csv'))';
+    resultpath = strcat(path,'/set',set,'_S',int2str(numSpeakers),'_',int2str(blockLength),'_',int2str(fileIndex),'_',int2str(order));
+    if (extraid ~= 0)
+        resultpath = strcat(resultpath,'_',int2str(extraid));
+    end
+    resultpath = strcat(resultpath,'_',classifier,'.csv');
+    result = csvread(resultpath)';
     player = audioplayer(x,Fs);
    
-    
     %Reading labels
     fileID = fopen(strcat(path,'/annotationset',set,'_S',int2str(numSpeakers),'.txt'));
     i=0;
@@ -93,7 +97,41 @@ function [player] = displayResult(fileIndex, numSpeakers, set, hopLength, blockL
     ylabel('SpeakerID (jumbled)');
 
     linkaxes([ax1,ax2,ax3],'x');
-   
     
-
+    winners = [];
+    win_percentages= [];
+    speaker_ids = unique(labels);
+    for i=1:length(speaker_ids)
+        if (speaker_ids(i) ~= 0)
+            indices = find(labels == speaker_ids(i));
+            hist = tabulate(estimated_labels(indices));
+            
+            winning_index = find(hist(:,2) == max(hist(:,2)));
+            winner = hist(winning_index,1);
+            win_perc = hist(winning_index,3);
+            
+            winners = [winners, winner];
+            win_percentages = [win_percentages, win_perc];
+%             hist(hist == max(hist(:,2))) = 0;
+%             w = find(winners == winner);
+%             if (isempty(w))
+%                 winners = [winners, winner];
+%                 win_percentages = [win_percentages, win_perc];
+%             else
+% %                 if (win_perc > win_percentages(3))
+% %                     winners(3) = winner;
+% %                 else
+% %                     
+% %                 end
+%                 winning_index = find(hist(:,2) == max(hist(:,2)));
+%                 winner = hist(winning_index,1)
+%                 win_perc = hist(winning_index,3);
+%                 winners = [winners, winner];
+%                 win_percentages = [win_percentages, win_perc];
+%             end
+        end
+    end
+    
+   [winners]  
+   [win_percentages]
 end
