@@ -2,19 +2,19 @@ from __future__ import division
 import os, random, wave
 import scipy.io.wavfile as wavfile
 import numpy as np
+from random import randint
 
 
 numSpeakers = 4 ## In each file
+numRepetitions = 2
 numOutput = 50 ## to be generated
-set = "D"
+set = "E"
 
 outputFileName = "set"+set+"_"+"S"+str(numSpeakers)
 
 #For future when using a podcast
 #minLengthOfSpeech = 2; #seconds
 #minLengthOfSpeech = 10; #seconds
-
-
 
 
 root = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/data"
@@ -55,6 +55,15 @@ for n in range(1,numOutput+1):
     selected_folders = random.sample(folders,numSpeakers)
     print selected_folders
 
+    if numRepetitions > 0:
+        num_speakers_to_be_repeated = randint(0,numSpeakers)
+        selected_folders_to_be_repeated = random.sample(selected_folders,num_speakers_to_be_repeated)
+        for folder in selected_folders_to_be_repeated:
+            num_repeats = randint(0,numRepetitions-1)
+            for i in range(0,num_repeats+1):
+                selected_folders.append(folder)
+
+        random.shuffle(selected_folders)
 
     #Iterate through selected speakers
     for folder in selected_folders:
@@ -81,7 +90,7 @@ for n in range(1,numOutput+1):
 
         ##print len(data),rate, len(data)/rate, timestamp
 
-        #calcualte timestamp - when next speaker starts speaking
+        #calculate timestamp - when next speaker starts speaking
         timestamp = timestamp + len(data)/rate
 
 

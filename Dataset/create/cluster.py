@@ -25,12 +25,12 @@ numSpeakers = sys.argv[4];      #Number of Speakers
 blockLength = sys.argv[5];      #Block length
 hopLength = sys.argv[6];        #Hop length
 thresholdOrder = sys.argv[7]    #Adaptive Threshold order
-extraid = sys.argv[8];          #extraid
+extraid = int(sys.argv[8]);          #extraid
 
 ###Prepare output file path
 outputRoot = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/"+"set"+set+"_S"+numSpeakers+"_"+blockLength+"_"+fileID+"_"+thresholdOrder
 if extraid != 0:
-    outputRoot = outputRoot + "_" + extraid
+    outputRoot = outputRoot + "_" + str(extraid)
 outputRoot = outputRoot + "_" + clusterType + ".csv"
 # print outputRoot
 
@@ -39,7 +39,7 @@ txtResultFile = open(outputRoot, "w")
 ###Prepare input file path
 path = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/features/set"+set+"_"+hopLength+"_"+blockLength+"_S"+numSpeakers+"_"+fileID+"_"+thresholdOrder
 if extraid != 0:
-    path = path + "_" + extraid
+    path = path + "_" + str(extraid)
 path = path + ".csv"
 #print path
 

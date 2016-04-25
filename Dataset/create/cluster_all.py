@@ -26,12 +26,12 @@ numSpeakers = sys.argv[5];      #Number of Speakers
 blockLength = sys.argv[6];      #Block length
 hopLength = sys.argv[7];        #Hop length
 thresholdOrder = sys.argv[8]    #Adaptive Threshold order
-extraid = sys.argv[9];          #extraid
+extraid = int(sys.argv[9]);          #extraid
 
 ###Output file for aggregating results
 resultsOutputFile = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/"+"set"+set+"_S"+numSpeakers+"_"+blockLength+"_"+str(fileIDMin)+"-"+str(fileIDMax)+"_"+thresholdOrder
 if extraid != 0:
-    resultsOutputFile = resultsOutputFile + "_" + extraid
+    resultsOutputFile = resultsOutputFile + "_" + str(extraid)
 resultsOutputFile = resultsOutputFile + "_" + clusterType + "_RESULT.csv"
 # print outputRoot
     
@@ -222,7 +222,7 @@ for fileID in range(fileIDMin,fileIDMax+1):
     ###Prepare output file path
     outputRoot = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/"+"set"+set+"_S"+numSpeakers+"_"+blockLength+"_"+str(fileID)+"_"+thresholdOrder
     if extraid != 0:
-        outputRoot = outputRoot + "_" + extraid
+        outputRoot = outputRoot + "_" + str(extraid)
     outputRoot = outputRoot + "_" + clusterType + ".csv"
     # print outputRoot
 
@@ -231,7 +231,7 @@ for fileID in range(fileIDMin,fileIDMax+1):
     ###Prepare input file path
     path = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/features/set"+set+"_"+hopLength+"_"+blockLength+"_S"+numSpeakers+"_"+str(fileID)+"_"+thresholdOrder
     if extraid != 0:
-        path = path + "_" + extraid
+        path = path + "_" + str(extraid)
     path = path + ".csv"
     #print path
 
