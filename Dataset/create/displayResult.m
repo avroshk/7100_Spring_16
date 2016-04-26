@@ -3,7 +3,7 @@ function [player] = displayResult(fileIndex, numSpeakers, set, hopLength, blockL
 
     path = strcat('/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/',set);
     [x,Fs] = audioread(strcat(path,'/set',set,'_S',int2str(numSpeakers),'_',int2str(fileIndex),'.wav'));
-    resultpath = strcat(path,'/set',set,'_S',int2str(numSpeakers),'_',int2str(blockLength),'_',int2str(fileIndex),'_',int2str(order));
+    resultpath = strcat(path,'/set',set,'_S',int2str(numSpeakers),'_',int2str(hopLength),'_',int2str(blockLength),'_',int2str(fileIndex),'_',int2str(order));
     if (extraid ~= 0)
         resultpath = strcat(resultpath,'_',int2str(extraid));
     end
@@ -40,6 +40,8 @@ function [player] = displayResult(fileIndex, numSpeakers, set, hopLength, blockL
     labels = result(1,:);
     estimated_labels = result(2,:);
     
+    smoothened_estimated_labels = myMedianThres(estimated_labels,32,0);
+    
     n = [0:hopLength/Fs:(length(estimated_labels)*hopLength)/Fs];
     
     n = n(1:length(n)-1);
@@ -66,7 +68,7 @@ function [player] = displayResult(fileIndex, numSpeakers, set, hopLength, blockL
     
     figure;
     
-    ax1 = subplot(3,1,1);
+    ax1 = subplot(4,1,1);
    
     for i=1:length(speaker_ids)
         if i == length(speaker_ids)
@@ -84,19 +86,26 @@ function [player] = displayResult(fileIndex, numSpeakers, set, hopLength, blockL
     title('audio');
     xlabel('Seconds');
     
-    ax2 = subplot(3,1,2);
+    ax2 = subplot(4,1,2);
     plot(n,labels);
     title('ground truth');
 %     xlabel('Num Samples');
     ylabel('SpeakerID');
     
-    ax3 = subplot(3,1,3);
+    ax3 = subplot(4,1,3);
     plot(n,estimated_labels);
     title('clustering result');
     xlabel('Num Samples');
     ylabel('SpeakerID (jumbled)');
+    
+    ax4 = subplot(4,1,4);
+    plot(n,smoothened_estimated_labels);
+    title('final result');
+    xlabel('Num Samples');
+    ylabel('Speakers');
 
-    linkaxes([ax1,ax2,ax3],'x');
+
+    linkaxes([ax1,ax2,ax3,ax4],'x');
     
     winners = [];
     win_percentages= [];

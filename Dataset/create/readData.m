@@ -1,12 +1,12 @@
 clear;
 
-extractFeatures(32,4,'D',2048,4096,2,1,32,0);
+% extractFeatures(32,4,'D',2048,4096,2,1,32,0);
 
-% extractFeatures(1,5,'Z',2048,4096,2,1,32,1);
+% extractFeatures(31,4,'E',2048,4096,2,1,32,2);
 
-% for i=1:50
-%    extractFeatures(i,6,'B',2048,4096,2,1,32,0);
-% end
+for i=1:50
+   extractFeatures(i,4,'E',2048,4096,2,1,32,4);
+end
 % 
 % fileIndex = 1;
 % % 

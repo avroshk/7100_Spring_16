@@ -28,7 +28,7 @@ thresholdOrder = sys.argv[7]    #Adaptive Threshold order
 extraid = int(sys.argv[8]);          #extraid
 
 ###Prepare output file path
-outputRoot = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/"+"set"+set+"_S"+numSpeakers+"_"+blockLength+"_"+fileID+"_"+thresholdOrder
+outputRoot = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/"+"set"+set+"_S"+numSpeakers+"_"+hopLength+"_"+blockLength+"_"+fileID+"_"+thresholdOrder
 if extraid != 0:
     outputRoot = outputRoot + "_" + str(extraid)
 outputRoot = outputRoot + "_" + clusterType + ".csv"

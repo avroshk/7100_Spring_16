@@ -220,7 +220,7 @@ def cluster(estimator, name, data):
 for fileID in range(fileIDMin,fileIDMax+1):
 
     ###Prepare output file path
-    outputRoot = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/"+"set"+set+"_S"+numSpeakers+"_"+blockLength+"_"+str(fileID)+"_"+thresholdOrder
+    outputRoot = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/"+"set"+set+"_S"+numSpeakers+"_"+hopLength+"_"+blockLength+"_"+str(fileID)+"_"+thresholdOrder
     if extraid != 0:
         outputRoot = outputRoot + "_" + str(extraid)
     outputRoot = outputRoot + "_" + clusterType + ".csv"

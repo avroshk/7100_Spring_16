@@ -185,19 +185,30 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
 %         'MFCC12d2','MFCC13d2'};
 % %         ,'Pitch','Flatnaess','Flux','Centroid','Rolloff','Spread','ZCR','RMS'};
 
+    
 %     headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
-%         'MFCC10','MFCC11','MFCC12','MFCC13','Pitch','Flatnaess','Flux','Centroid','Rolloff','Spread','ZCR','RMS'};
-
-    headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
-        'MFCC10','MFCC11','MFCC12','MFCC13'};
-
-
+%         'MFCC10','MFCC11','MFCC12','MFCC13'};
 
 %     features = [speaker_labels',MFCC',MFCC_d',MFCC_d2'];
 % ,IP',SF',SFF',SC',SR',SS',ZCR',RMS'];
 
-features = [speaker_labels',MFCC'];
+%     headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
+%         'MFCC10','MFCC11','MFCC12','MFCC13'};
+%     features = [speaker_labels',MFCC'];
 
+%     headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
+%         'MFCC10','MFCC11','MFCC12','MFCC13','Pitch'};
+%     features = [speaker_labels',MFCC',IP'];
+%     
+     headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
+        'MFCC10','MFCC11','MFCC12','MFCC13','RMS','Pitch'};
+    features = [speaker_labels',MFCC',RMS',IP'];
+
+%      headers = {'speaker','Flatness','RMS'};
+%     features = [speaker_labels',SFF',RMS'];
+
+%     headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
+%         'MFCC10','MFCC11','MFCC12','MFCC13','Pitch','Flatnaess','Flux','Centroid','Rolloff','Spread','ZCR','RMS'};
 %     features = [speaker_labels',MFCC',IP',SF',SFF',SC',SR',SS',ZCR',RMS'];
 
     outputFileName = strcat(path,'/features/set',set,'_',int2str(hopLength),'_',int2str(blockLength),'_S',int2str(numSpeakers),'_',int2str(fileIndex),'_',int2str(order));
