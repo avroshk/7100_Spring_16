@@ -4,15 +4,29 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
     %Case 2: Aggregate smaller blocks to a longer cluster window for one set of features
     %%%%%%
     
+    fs_16k = 16000;
+    fs_22k = 22050;
+    
     %Reading the file
     path = strcat('/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/',set);
     [x,Fs] = audioread(strcat(path,'/set',set,'_S',int2str(numSpeakers),'_',int2str(fileIndex),'.wav'));
     fileID = fopen(strcat(path,'/annotationset',set,'_S',int2str(numSpeakers),'.txt'));
     
+     %resample
+    if Fs ~= fs_16k
+        x = resample(x,fs_16k,Fs);
+        Fs = fs_16k;
+    end
+    
     %Calculate RMS to detect silence
     RMS_i = ComputeFeature('TimeRms',x,Fs,[],blockLength,hopLength);
+%     ZCR_i = ComputeFeature('TimeZeroCrossingRate',x,Fs,[],blockLength,hopLength); RMS_i = ZCR_i;
     IP_i = ComputePitch('SpectralAcf',x,Fs,[],blockLength,hopLength);
     RMS_i = RMS_i(1:size(IP_i,2));
+    
+    %Tonality measure to detect weird syllables
+%     SF_i = ComputeFeature('SpectralFlatness',x,Fs,[],blockLength,hopLength);
+    
     
     %--------Detecting Silence-----
     %Thresholding
@@ -23,19 +37,45 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
     time = time./Fs;
 
     lambda = mean(THR)/3;
+%     lambda = mean(THR);
 
     threshold = myMedianThres(THR,order,lambda);
     
     noise_floor = -75;
     
     threshold(threshold<noise_floor) = noise_floor;
-
+    
     %plot---------
+%     figure;
 %     plot(time,THR); 
 %     hold on; plot(time,threshold); 
-    %plot---------
+    %plot------
+    
+    %%--------
+    %Detecting tonality
+%      THR = SF_i;
+% 
+%     time = (1:size(THR,2));
+%     time = time.*hopLength;
+%     time = time./Fs;
+% 
+%     lambda = -mean(THR)/5;
+% 
+%     threshold = myMedianThres(THR,order*5,lambda);
+%     
+%     noise_floor = -75;
+%     
+%     threshold(threshold<noise_floor) = noise_floor;
+%     %%---------
+% 
+%     %plot---------
+%     figure;
+%     plot(time,THR); 
+%     hold on; plot(time,threshold); 
+%     %plot---------
     
     valid_ones = find(THR>threshold);
+%     valid_ones = find(THR<threshold);
     
     mask = zeros(size(THR));
     mask(valid_ones) = 1;
@@ -64,20 +104,29 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
     
       %Extract spectral features
     MFCC = ComputeFeature('SpectralMfccs',x,Fs,[],blockLength,hopLength);
-    IP = ComputePitch('SpectralAcf',x,Fs,[],blockLength,hopLength);
-    SF = ComputeFeature('SpectralFlatness',x,Fs,[],blockLength,hopLength);
-    SFF = ComputeFeature('SpectralFlux',x,Fs,[],blockLength,hopLength);
-    SC = ComputeFeature('SpectralCentroid',x,Fs,[],blockLength,hopLength);
-    SR = ComputeFeature('SpectralRolloff',x,Fs,[],blockLength,hopLength);
-    SS = ComputeFeature('SpectralSpread',x,Fs,[],blockLength,hopLength);
+    MFCC_pad = [MFCC,MFCC(:,length(MFCC))];
+    MFCC_d = diff(MFCC_pad,1,2);
+    MFCC_d2 = diff([MFCC,MFCC(:,length(MFCC)-1),MFCC(:,length(MFCC))],2,2);
+    
+    MIDI = round(69 + 12 * log2(IP_i/440));
+    MIDI_pad = [MIDI,MIDI(length(MIDI))];
+    MIDI_d = diff(MIDI_pad);
+%     IP = ComputePitch('SpectralAcf',x,Fs,[],blockLength,hopLength);
+%     SF = ComputeFeature('SpectralFlatness',x,Fs,[],blockLength,hopLength);
+%     SFF = ComputeFeature('SpectralFlux',x,Fs,[],blockLength,hopLength);
+%     SC = ComputeFeature('SpectralCentroid',x,Fs,[],blockLength,hopLength);
+%     SR = ComputeFeature('SpectralRolloff',x,Fs,[],blockLength,hopLength);
+%     SS = ComputeFeature('SpectralSpread',x,Fs,[],blockLength,hopLength);
     
     %Extract time domain features
-    ZCR = ComputeFeature('TimeZeroCrossingRate',x,Fs,[],blockLength,hopLength);
-    RMS = ComputeFeature('TimeRms',x,Fs,[],blockLength,hopLength);
+%     ZCR = ComputeFeature('TimeZeroCrossingRate',x,Fs,[],blockLength,hopLength);
+%     RMS = ComputeFeature('TimeRms',x,Fs,[],blockLength,hopLength);
     
     %Truncate Time domain features
-    ZCR = ZCR(1:size(MFCC,2));
-    RMS = RMS(1:size(MFCC,2));
+%     ZCR = ZCR(1:size(MFCC,2));
+%     RMS = RMS(1:size(MFCC,2));
+    RMS = RMS_i;
+    IP = IP_i;
    
 %     Finding local minima
 %     THR_filt = medfilt1(THR);
@@ -117,22 +166,23 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
     MorStd = 0;
     %Case 2: Aggregate the features into cluster windows
     if (aggregate ~= 0)
-        MFCC = aggregateFeature(numHops,MFCC,mask,windowInNumBlocks,MorStd);
-        IP = aggregateFeature(numHops,IP,mask,windowInNumBlocks,MorStd);
-        SF = aggregateFeature(numHops,SF,mask,windowInNumBlocks,MorStd);
-        SFF = aggregateFeature(numHops,SFF,mask,windowInNumBlocks,MorStd);
-        SC = aggregateFeature(numHops,SC,mask,windowInNumBlocks,MorStd);
-        SR = aggregateFeature(numHops,SR,mask,windowInNumBlocks,MorStd);
-        SS = aggregateFeature(numHops,SS,mask,windowInNumBlocks,MorStd);
-        ZCR = aggregateFeature(numHops,ZCR,mask,windowInNumBlocks,MorStd);
-        RMS = aggregateFeature(numHops,RMS,mask,windowInNumBlocks,MorStd);     
+        MFCC = aggregateFeature(numHops,MFCC,mask,windowInNumBlocks,MorStd); 
+        IP = aggregateFeature(numHops,MIDI,mask,windowInNumBlocks,1); 
+        IP_d = aggregateFeature(numHops,MIDI_d,mask,windowInNumBlocks,MorStd); 
+%         SF = aggregateFeature(numHops,SF,mask,windowInNumBlocks,MorStd);
+%         SFF = aggregateFeature(numHops,SFF,mask,windowInNumBlocks,MorStd);
+%         SC = aggregateFeature(numHops,SC,mask,windowInNumBlocks,MorStd);
+%         SR = aggregateFeature(numHops,SR,mask,windowInNumBlocks,MorStd);
+%         SS = aggregateFeature(numHops,SS,mask,windowInNumBlocks,MorStd);
+%         ZCR = aggregateFeature(numHops,ZCR,mask,windowInNumBlocks,MorStd);
+        RMS = aggregateFeature(numHops,RMS,mask,windowInNumBlocks,MorStd);
     else
-        origmask = origmask(1:size(IP,2));
+        origmask = origmask(1:numHops);
     end
 
     %speaker labels------------------------------------------
     speaker_labels = zeros(1,numHops);
-
+    
     speaker_ids = [];
     timestamps = [];
 
@@ -177,14 +227,13 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
     speaker_labels = speaker_labels.*origmask;
 %     speaker_labels(speaker_labels==0) = -1;
     
-
+% 
 %     headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
 %         'MFCC10','MFCC11','MFCC12','MFCC13','MFCC1d','MFCC2d','MFCC3d','MFCC4d','MFCC5d','MFCC6d', ...
 %         'MFCC7d','MFCC8d','MFCC9d','MFCC10d','MFCC11d','MFCC12d','MFCC13d','MFCC1d2','MFCC2d2', ...
 %         'MFCC3d2','MFCC4d2','MFCC5d2','MFCC6d2','MFCC7d2','MFCC8d2','MFCC9d2','MFCC10d2','MFCC11d2', ...
 %         'MFCC12d2','MFCC13d2'};
 % %         ,'Pitch','Flatnaess','Flux','Centroid','Rolloff','Spread','ZCR','RMS'};
-
     
 %     headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
 %         'MFCC10','MFCC11','MFCC12','MFCC13'};
@@ -193,16 +242,16 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
 % ,IP',SF',SFF',SC',SR',SS',ZCR',RMS'];
 
 %     headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
-%         'MFCC10','MFCC11','MFCC12','MFCC13'};
-%     features = [speaker_labels',MFCC'];
-
-%     headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
-%         'MFCC10','MFCC11','MFCC12','MFCC13','Pitch'};
-%     features = [speaker_labels',MFCC',IP'];
-%     
-     headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
-        'MFCC10','MFCC11','MFCC12','MFCC13','RMS','Pitch'};
-    features = [speaker_labels',MFCC',RMS',IP'];
+%         'MFCC10','MFCC11','MFCC12','MFCC13','RMS'};
+%     features = [speaker_labels',MFCC',RMS'];
+% 
+    headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
+        'MFCC10','MFCC11','MFCC12','MFCC13'};
+    features = [speaker_labels',MFCC'];
+    
+%      headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
+%         'MFCC10','MFCC11','MFCC12','MFCC13','RMS','Pitch'};
+%     features = [speaker_labels',MFCC',RMS',IP'];
 
 %      headers = {'speaker','Flatness','RMS'};
 %     features = [speaker_labels',SFF',RMS'];

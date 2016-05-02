@@ -2,6 +2,9 @@ import speech_recognition as sr
 import sys
 import numpy as np
 
+import pyaudio
+import wave
+
 ###Get command line arguments
 clusterType = sys.argv[1]       #Clustering algorithm
 fileID = sys.argv[2];           #fileID
@@ -11,6 +14,11 @@ blockLength = sys.argv[5];      #Block length
 hopLength = sys.argv[6];        #Hop length
 thresholdOrder = sys.argv[7]    #Adaptive Threshold order
 extraid = int(sys.argv[8]);          #extraid
+
+RATE = 16000
+CHANNELS = 1
+FORMAT = pyaudio.paInt16
+CHUNK_SIZE = 1024
 
 sampleRate = 16000; #Assumption for now
 
@@ -49,7 +57,7 @@ speaker_ids = np.unique(labels)
 
 ###path finding
 
-
+stop_record = False
 
 
 ###Prepare transcription file path
@@ -59,16 +67,64 @@ path = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+
 #txtTranscriptionFile = open(path, "w")
 
 
-
 #from os import path
 #AUDIO_FILE = path.join(path.dirname(path.realpath(__file__)), "english.wav")
 ##AUDIO_FILE = path.join(path.dirname(path.realpath(__file__)), "french.aiff")
+
 ##AUDIO_FILE = path.join(path.dirname(path.realpath(__file__)), "chinese.flac")
+def record():
+    """Record a word or words from the microphone and
+        return the data as an array of signed shorts."""
+    
+    p = pyaudio.PyAudio()
+    stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, output=True, frames_per_buffer=CHUNK_SIZE)
+    
+#    silent_chunks = 0
+    audio_started = False
+    
+    data_all = array('h')
+    
+    while True:
+        # little endian, signed short
+        data_chunk = array('h', stream.read(CHUNK_SIZE))
+        if byteorder == 'big':
+            data_chunk.byteswap()
+        data_all.extend(data_chunk)
+        
+#        silent = is_silent(data_chunk)
+
+        if audio_started:
+            if stop_record:
+                break
+        elif not silent:
+            audio_started = True
+        
+    sample_width = p.get_sample_size(FORMAT)
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
+    
+#    data_all = trim(data_all)  # we trim before normalize as threshhold applies to un-normalized wave (as well as is_silent() function)
+#    data_all = normalize(data_all)
+    return sample_width, data_all
+
+def record_to_file(path):
+    "Records from the microphone and outputs the resulting data to 'path'"
+    sample_width, data = record()
+    data = pack('<' + ('h' * len(data)), *data)
+    
+    wave_file = wave.open(path, 'wb')
+    wave_file.setnchannels(CHANNELS)
+    wave_file.setsampwidth(sample_width)
+    wave_file.setframerate(RATE)
+    wave_file.writeframes(data)
+    wave_file.close()
+
 
 # use the audio file as the audio source
-r = sr.Recognizer()
-with sr.AudioFile(AUDIO_FILE) as source:
-    audio = r.record(source) # read the entire audio file
+#r = sr.Recognizer()
+#with sr.AudioFile(AUDIO_FILE) as source:
+#    audio = r.record(source) # read the entire audio file
 
 
 # recognize speech using Sphinx

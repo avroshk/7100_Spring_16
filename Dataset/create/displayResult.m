@@ -1,8 +1,14 @@
 function [player] = displayResult(fileIndex, numSpeakers, set, hopLength, blockLength, clusterTimeInSecs,order,extraid,classifier)
-
+    
+    fs_16k = 16000;
+    fs_22k = 22050;
 
     path = strcat('/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/',set);
     [x,Fs] = audioread(strcat(path,'/set',set,'_S',int2str(numSpeakers),'_',int2str(fileIndex),'.wav'));
+    
+    x = resample(x,fs_16k,Fs);
+    Fs = fs_16k;
+    
     resultpath = strcat(path,'/set',set,'_S',int2str(numSpeakers),'_',int2str(hopLength),'_',int2str(blockLength),'_',int2str(fileIndex),'_',int2str(order));
     if (extraid ~= 0)
         resultpath = strcat(resultpath,'_',int2str(extraid));

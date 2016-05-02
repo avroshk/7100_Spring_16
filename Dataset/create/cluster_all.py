@@ -27,6 +27,7 @@ blockLength = sys.argv[6];      #Block length
 hopLength = sys.argv[7];        #Hop length
 thresholdOrder = sys.argv[8]    #Adaptive Threshold order
 extraid = int(sys.argv[9]);          #extraid
+gmm_co_var_type = sys.argv[10];
 
 ###Output file for aggregating results
 resultsOutputFile = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/"+"set"+set+"_S"+numSpeakers+"_"+blockLength+"_"+str(fileIDMin)+"-"+str(fileIDMax)+"_"+thresholdOrder
@@ -250,6 +251,7 @@ for fileID in range(fileIDMin,fileIDMax+1):
     #features = scale(data[:,1:])
     features = data[data[:,0] != 0]
     features = scale(features[:,1:])
+    unscaled_features = features[:,1:]
     #features = data[:,1:]
     #print features
 
@@ -293,11 +295,32 @@ for fileID in range(fileIDMin,fileIDMax+1):
     ##GMM
     # Fit a mixture of Gaussians with EM using five components
     if (clusterType == "gmm"):
-        gmm = mixture.GMM(n_components=n_speakers, covariance_type='full')
+        
+#        if(gmm_co_var_type != 'tied' or gmm_co_var_type != 'full'):
+#            gmm_co_var_type = 'full'
+
+        
+        gmm = mixture.GMM(n_components=n_speakers, covariance_type=gmm_co_var_type)
         overall_completeness_score = overall_completeness_score + cluster(gmm,
                 name='gmm',
                 data=features)
 #        visualize_gmm(features,gmm)
+
+    ##GMM-PCA
+    # Fit a mixture of Gaussians with EM using five components
+    if (clusterType == "gmm-pca"):
+        
+#        if(gmm_co_var_type != 'tied' or gmm_co_var_type != 'full'):
+#            gmm_co_var_type = 'full'
+
+        
+        reduced_data = PCA(n_components=10).fit_transform(unscaled_features)
+        reduced_data = scale(reduced_data)
+        gmm = mixture.GMM(n_components=n_speakers, covariance_type=gmm_co_var_type)
+        overall_completeness_score = overall_completeness_score + cluster(gmm,
+                name='gmm-pca',
+                data=reduced_data)
+#            visualize_gmm(reduced_data,gmm)
 
 
     fileCount = fileCount + 1;

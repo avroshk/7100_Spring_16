@@ -50,7 +50,7 @@ function [v, t] = ComputeFeature (cFeatureName, afAudioData, f_s, afWindow, iBlo
     if (size(afAudioData,2)> 1)
         afAudioData = mean(afAudioData,2);
     end
-    % pre-processing: normalization (not necessary for many features)
+%     pre-processing: normalization (not necessary for many features)
     if (length(afAudioData)> 1)
         afAudioData = afAudioData/max(abs(afAudioData));
     end
@@ -73,7 +73,7 @@ function [v, t] = ComputeFeature (cFeatureName, afAudioData, f_s, afWindow, iBlo
                                     f_s);
         
         % magnitude spectrum
-        X           = abs(X)*2/iBlockLength;
+        X           = abs(X)*2/double(iBlockLength);
         
         % compute feature
         v           = hFeatureFunc(X, f_s);

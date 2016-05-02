@@ -28,6 +28,7 @@ thresholdOrder = sys.argv[7]    #Adaptive Threshold order
 extraid = int(sys.argv[8]);          #extraid
 gmm_co_var_type = sys.argv[9];  #'full' or 'tied'
 
+estimated_labels = [];
 
 ###Prepare output file path
 outputRoot = "/Users/avrosh/Documents/Coursework/7100_Spring_16/Dataset/dataset/"+set+"/"+"set"+set+"_S"+numSpeakers+"_"+hopLength+"_"+blockLength+"_"+fileID+"_"+thresholdOrder
@@ -57,7 +58,6 @@ labels = all_labels[all_labels != 0]
 #print labels
 
 #normalize data
-#features = scale(data[:,1:])
 features = data[data[:,0] != 0]
 features = scale(features[:,1:])
 unscaled_features = features[:,1:]
@@ -66,10 +66,10 @@ unscaled_features = features[:,1:]
 
 
 n_samples, n_features = features.shape
-n_speakers = len(np.unique(labels))
-speaker_ids = np.unique(labels)
-print speaker_ids
-print ("n_speakers %d \nn_samples %d \nn_features %d" % (n_speakers,n_samples,n_features))
+n_speakers = numSpeakers
+#speaker_ids = np.unique(labels)
+#print speaker_ids
+print ("n_speakers %d \nn_samples %d \nn_features %d" % (int(n_speakers),int(n_samples),int(n_features)))
 
 sample_size = 300
 
@@ -83,8 +83,13 @@ def visualize_gmm(data,gmm):
     gmm.fit(reduced_data)
 
     color_iter = itertools.cycle(['r', 'g', 'b', 'c', 'm','k'])
+    
+    global estimated_labels
+#    print estimated_labels
 
-    for speaker in speaker_ids:
+    estimated_speaker_ids = np.unique(estimated_labels)
+
+    for speaker in estimated_speaker_ids:
         
         speaker_labels = np.argwhere(labels==speaker)
         plt.scatter(reduced_data[speaker_labels,0],
@@ -156,10 +161,10 @@ def visualize_kmeans(data):
 
     #Colour Cycler
     colorcycler = itertools.cycle(['r', 'g', 'b', 'y','c','k','w','m'])
+    
+    estimated_speaker_ids = np.unique(Z)
 
-
-
-    for speaker in speaker_ids:
+    for speaker in estimated_speaker_ids:
         
         speaker_labels = np.argwhere(labels==speaker)
         
@@ -203,24 +208,27 @@ def cluster(estimator, name, data):
     t0 = time()
     estimator.fit(data)
     
+    global estimated_labels
+    
     estimated_labels = estimator.predict(data)
+#    print estimated_labels
 
     
-    homogeneity_score = metrics.homogeneity_score(labels,estimated_labels)
-    completeness_score = metrics.completeness_score(labels, estimated_labels)
-    v_measure_score = metrics.v_measure_score(labels, estimated_labels)
-    adjusted_rand_score = metrics.adjusted_rand_score(labels, estimated_labels)
-    adjusted_mutual_info_score = metrics.adjusted_mutual_info_score(labels, estimated_labels)
-#    silhouette_score = metrics.silhouette_score(features,  estimated_labels,
-#                                                metric='euclidean',
-#                                                sample_size=sample_size)
+#    homogeneity_score = metrics.homogeneity_score(labels,estimated_labels)
+#    completeness_score = metrics.completeness_score(labels, estimated_labels)
+#    v_measure_score = metrics.v_measure_score(labels, estimated_labels)
+#    adjusted_rand_score = metrics.adjusted_rand_score(labels, estimated_labels)
+#    adjusted_mutual_info_score = metrics.adjusted_mutual_info_score(labels, estimated_labels)
+##    silhouette_score = metrics.silhouette_score(features,  estimated_labels,
+##                                                metric='euclidean',
+##                                                sample_size=sample_size)
 
     i=0
     j=0
     for label in all_labels:
         i = i + 1;
-        txtResultFile.write("{0}".format(label))
-        txtResultFile.write(",")
+#        txtResultFile.write("{0}".format(label))
+#        txtResultFile.write(",")
         if label == 0:
             txtResultFile.write("{0}".format(-1))
         else:
@@ -231,19 +239,19 @@ def cluster(estimator, name, data):
 
 
 
-    print('Name: % 9s \n'
-          'Time: %.2fs \n'
-          'Homogeneity Score: %.3f \n'
-          'Completeness Score: %.3f \n'
-          'V Measure score: %.3f \n'
-          'Adjusted rand score: %.3f \n'
-          'Adjusted Mutual Info score: %.3f \n'
-          % (name, (time()-t0),
-             homogeneity_score,
-             completeness_score,
-             v_measure_score,
-             adjusted_rand_score,
-             adjusted_mutual_info_score))
+#    print('Name: % 9s \n'
+#          'Time: %.2fs \n'
+#          'Homogeneity Score: %.3f \n'
+#          'Completeness Score: %.3f \n'
+#          'V Measure score: %.3f \n'
+#          'Adjusted rand score: %.3f \n'
+#          'Adjusted Mutual Info score: %.3f \n'
+#          % (name, (time()-t0),
+#             homogeneity_score,
+#             completeness_score,
+#             v_measure_score,
+#             adjusted_rand_score,
+#             adjusted_mutual_info_score))
 
 
 print(79 * '_')
@@ -275,7 +283,7 @@ if (clusterType == "kmeans-pca"):
 ##GMM
 # Fit a mixture of Gaussians with EM using five components
 if (clusterType == "gmm"):
-    gmm = mixture.GMM(n_components=n_speakers-1, covariance_type=gmm_co_var_type)
+    gmm = mixture.GMM(n_components=int(n_speakers), covariance_type=gmm_co_var_type)
     cluster(gmm,
             name='gmm',
             data=features)
@@ -297,6 +305,7 @@ if (clusterType == "gmm-pca"):
 
 ###Close output file
 txtResultFile.close()
+sys.exit()
 
 
 

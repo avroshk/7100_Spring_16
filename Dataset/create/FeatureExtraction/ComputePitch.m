@@ -59,7 +59,7 @@ function [f, t] = ComputePitch (cPitchTrackName, afAudioData, f_s, afWindow, iBl
                                     f_s);
         
         % magnitude spectrum
-        X           = abs(X)*2/iBlockLength;
+        X           = abs(X)*2/double(iBlockLength);
         
         % compute frequency
         f           = hPitchFunc(X, f_s);
