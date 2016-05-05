@@ -84,7 +84,8 @@ function [status] = displayResultLive(fileIndex, numSpeakers, set, hopLength, bl
     
     
     %Plot results
-    figure;
+    figure; title('Speech tagged to different speakers (shown as colors)')
+
     ax1 = subplot(3,1,1);
    
     snippet_path = strcat(path,'/snippets/set',set,'_S',int2str(numSpeakers),'_',int2str(fileIndex));
@@ -112,13 +113,13 @@ function [status] = displayResultLive(fileIndex, numSpeakers, set, hopLength, bl
     ax2 = subplot(3,1,2);
     plot(n,estimated_labels);
     title('clustering result');
-    xlabel('Num Samples');
-    ylabel('SpeakerID (jumbled)');
+    xlabel('Seconds');
+    ylabel('Speakers');
     
     ax3 = subplot(3,1,3);
     plot(n,smoothened_estimated_labels);
     title('final result');
-    xlabel('Num Samples');
+    xlabel('Seconds');
     ylabel('Speakers');
 
     linkaxes([ax1,ax2,ax3],'x');

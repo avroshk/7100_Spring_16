@@ -37,9 +37,10 @@ class App():
         self.order = 32
         self.extraid = 0
         self.classifier = "gmm"
+        self.gmm_type = "full"
         
         self.screen = master
-        self.screen.title("Demo")
+        self.screen.title("Speaker Recognition and Annotation Demo")
         self.isrecording = False
         self.recording_in_progress = False
         self.count = 0
@@ -183,7 +184,7 @@ class App():
     
     def cluster_data(self):
         
-        os.system("python cluster_live.py gmm "+str(self.fileId-1)+" M "+self.txtNumSpeakers.get()+" 4096 2048 32 0 full")
+        os.system("python cluster_live.py "+self.classifier+" "+str(self.fileId-1)+" M "+self.txtNumSpeakers.get()+" "+str(self.blockLength)+" "+str(self.hopLength)+" "+str(self.order)+" "+str(self.extraid)+" "+self.gmm_type)
     
     def display_results(self):
         
@@ -265,6 +266,8 @@ class App():
         
         ids = map(int, ids)
         speaker_ids = map(int, speaker_ids)
+        
+        print files,ids,speaker_ids
         
         ids = [id - 1 for id in ids]
         speaker_ids = [speaker_id + 1 for speaker_id in speaker_ids]

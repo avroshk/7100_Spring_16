@@ -5,7 +5,7 @@ function [result] = aggregateFeature(numHops,feature,mask,windowInNumBlocks,mean
     
     
     %append mirror pads at the start and the end
-    start_pad = windowInNumBlocks/2;
+    start_pad = round(windowInNumBlocks/2);
     if mod(windowInNumBlocks,2) == 0
       end_pad = start_pad-1;
     else

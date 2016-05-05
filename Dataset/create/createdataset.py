@@ -7,8 +7,8 @@ from random import randint
 
 numSpeakers = 4 ## In each file
 numRepetitions = 2
-numOutput = 50 ## to be generated
-set = "E"
+numOutput = 200 ## to be generated
+set = "F"
 
 outputFileName = "set"+set+"_"+"S"+str(numSpeakers)
 

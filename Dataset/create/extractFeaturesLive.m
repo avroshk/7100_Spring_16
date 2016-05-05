@@ -5,6 +5,7 @@
 % (2 = MFCCs and Pitch) 
 % (3 = MFCCs and RMS)
 % (4 = MFCCs, Pitch, RMS)
+% (5 = MFCCs, MFCC_first_order_diff)
 
 %%%%%%
 
@@ -153,7 +154,7 @@ function status = extractFeaturesLive(fileIndex, numSpeakers, set, hopLength, bl
     
     %Aggregate the features into cluster windows
     MFCC = aggregateFeature(numHops,MFCC,mask,windowInNumBlocks,MorStd); 
-    MFCC_d = aggregateFeature(numHops,MFCC_d,mask,windowInNumBlocks,MorStd);
+    MFCC_d = aggregateFeature(numHops,MFCC_d,mask,windowInNumBlocks,1);
     MFCC_d2 = aggregateFeature(numHops,MFCC_d2,mask,windowInNumBlocks,MorStd);
     IP = aggregateFeature(numHops,MIDI,mask,windowInNumBlocks,1); 
     IP_d = aggregateFeature(numHops,MIDI_d,mask,windowInNumBlocks,MorStd); 
@@ -220,6 +221,11 @@ function status = extractFeaturesLive(fileIndex, numSpeakers, set, hopLength, bl
             headers = {'silence','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
             'MFCC10','MFCC11','MFCC12','MFCC13','Pitch','RMS'};
             features = [origmask',MFCC',IP',RMS'];
+       case 5
+            headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
+        'MFCC10','MFCC11','MFCC12','MFCC13','MFCC1d','MFCC2d','MFCC3d','MFCC4d','MFCC5d','MFCC6d', ...
+        'MFCC7d','MFCC8d','MFCC9d','MFCC10d','MFCC11d','MFCC12d','MFCC13d'};
+            features = [origmask',MFCC',MFCC_d'];
        otherwise
           
     end

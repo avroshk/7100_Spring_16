@@ -70,8 +70,8 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
 % 
 %     %plot---------
 %     figure;
-%     plot(time,THR); 
-%     hold on; plot(time,threshold); 
+    plot(time,THR); 
+    hold on; plot(time,threshold); 
 %     %plot---------
     
     valid_ones = find(THR>threshold);
@@ -167,6 +167,8 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
     %Case 2: Aggregate the features into cluster windows
     if (aggregate ~= 0)
         MFCC = aggregateFeature(numHops,MFCC,mask,windowInNumBlocks,MorStd); 
+        MFCC_d = aggregateFeature(numHops,MFCC_d,mask,windowInNumBlocks,1); 
+        MFCC_d2 = aggregateFeature(numHops,MFCC_d2,mask,windowInNumBlocks,MorStd); 
         IP = aggregateFeature(numHops,MIDI,mask,windowInNumBlocks,1); 
         IP_d = aggregateFeature(numHops,MIDI_d,mask,windowInNumBlocks,MorStd); 
 %         SF = aggregateFeature(numHops,SF,mask,windowInNumBlocks,MorStd);
@@ -228,9 +230,11 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
 %     speaker_labels(speaker_labels==0) = -1;
     
 % 
-%     headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
-%         'MFCC10','MFCC11','MFCC12','MFCC13','MFCC1d','MFCC2d','MFCC3d','MFCC4d','MFCC5d','MFCC6d', ...
-%         'MFCC7d','MFCC8d','MFCC9d','MFCC10d','MFCC11d','MFCC12d','MFCC13d','MFCC1d2','MFCC2d2', ...
+    headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
+        'MFCC10','MFCC11','MFCC12','MFCC13'};
+%         ,'MFCC1d','MFCC2d','MFCC3d','MFCC4d','MFCC5d','MFCC6d', ...
+%         'MFCC7d','MFCC8d','MFCC9d','MFCC10d','MFCC11d','MFCC12d','MFCC13d'};
+%         ,'MFCC1d2','MFCC2d2', ...
 %         'MFCC3d2','MFCC4d2','MFCC5d2','MFCC6d2','MFCC7d2','MFCC8d2','MFCC9d2','MFCC10d2','MFCC11d2', ...
 %         'MFCC12d2','MFCC13d2'};
 % %         ,'Pitch','Flatnaess','Flux','Centroid','Rolloff','Spread','ZCR','RMS'};
@@ -238,16 +242,16 @@ function extractFeatures(fileIndex, numSpeakers, set, hopLength, blockLength, cl
 %     headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
 %         'MFCC10','MFCC11','MFCC12','MFCC13'};
 
-%     features = [speaker_labels',MFCC',MFCC_d',MFCC_d2'];
+    features = [speaker_labels',MFCC'];
 % ,IP',SF',SFF',SC',SR',SS',ZCR',RMS'];
 
 %     headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
 %         'MFCC10','MFCC11','MFCC12','MFCC13','RMS'};
 %     features = [speaker_labels',MFCC',RMS'];
 % 
-    headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
-        'MFCC10','MFCC11','MFCC12','MFCC13'};
-    features = [speaker_labels',MFCC'];
+%     headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
+%         'MFCC10','MFCC11','MFCC12','MFCC13'};
+%     features = [speaker_labels',MFCC'];
     
 %      headers = {'speaker','MFCC1','MFCC2','MFCC3','MFCC4','MFCC5','MFCC6','MFCC7','MFCC8','MFCC9', ...
 %         'MFCC10','MFCC11','MFCC12','MFCC13','RMS','Pitch'};

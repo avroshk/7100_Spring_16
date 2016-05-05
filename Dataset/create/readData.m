@@ -1,14 +1,14 @@
 clear;
 
-extractFeaturesLive(6, 2, 'M', 2048,4096, 2, 1,32,0,0);
+% extractFeaturesLive(6, 2, 'M', 2048,4096, 2, 1,32,0,0);
 
 % extractFeatures(1,5,'Z',2048,4096,1,1,32,2);
 
 % extractFeatures(49,4,'E',2048,4096,2,1,32,6);
 
-% for i=1:50
-%    extractFeatures(i,4,'E',2048,4096,2,1,32,13);
-% end
+for i=1:200
+   extractFeatures(i,4,'F',8192,4096,2,1,32,0);
+end
 % % % 
 % fileIndex = 1;
 % % 

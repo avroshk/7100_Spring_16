@@ -96,7 +96,7 @@ def visualize_gmm(data,gmm):
                     reduced_data[speaker_labels,1],
                     color=next(color_iter))
 
-    for i, (clf, title) in enumerate([(gmm, 'GMM')]):
+    for i, (clf, title) in enumerate([(gmm, 'Clustered using GMM (showing PCA reduced plot)')]):
         splot = plt.subplot(1, 1, 1 + i)
         
         Y_ = clf.predict(reduced_data)
@@ -128,6 +128,7 @@ def visualize_gmm(data,gmm):
         plt.xticks(())
         plt.yticks(())
         plt.title(title)
+        plt.legend(["Ellipses are clusters, dots are short blocks of audio"])
         plt.show()
 
 
